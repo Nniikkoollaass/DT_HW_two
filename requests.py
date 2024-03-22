@@ -251,11 +251,11 @@ def get_users_and_tasks_in_progress(conn, status):
 #та підрахунку їхніх завдань.
 def get_users_and_their_counted_tasks(conn):
     sql = f'''
-    SELECT u.fullname, COUNT(t.id)
+    SELECT u.id, u.fullname, COUNT(t.id)
     FROM users AS u
     LEFT JOIN tasks AS t 
     ON u.id = t.user_id
-    GROUP BY t.id;
+    GROUP BY u.id;
     '''
     cur = conn.cursor()
     try:
