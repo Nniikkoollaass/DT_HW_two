@@ -228,7 +228,7 @@ def get_tasks_without_description(conn):
 # та їхніх завдань із певним статусом
 def get_users_and_tasks_in_progress(conn, status):
     sql = f'''
-    SELECT * 
+    SELECT u.fullname, t.status_id
     FROM users AS u
     INNER JOIN tasks AS t
     ON u.id = t.user_id
