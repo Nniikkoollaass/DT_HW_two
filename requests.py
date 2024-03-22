@@ -26,10 +26,12 @@ def get_user_tasks(conn, user_id):
 def get_task_with_status(conn, status):
     sql = f'''
     SELECT t.id, t.title, t.description, t.user_id
-    FROM tasks AS t, status AS s
-    WHERE t.status_id = s.id
-    AND s.name = {status};
+    FROM tasks AS t
+    WHERE t.status_id = 
+    (SELECT s.id FROM status AS s
+    WHERE s.name = {status});
     '''
+
     cur = conn.cursor()
     try:
         cur.execute(sql, status)
