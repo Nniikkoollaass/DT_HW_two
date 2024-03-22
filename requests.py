@@ -5,14 +5,14 @@ from connect import create_connection, database
 #1 Отримати всі завдання певного користувача. 
 # Використайте SELECT для отримання завдань конкретного користувача 
 #за його user_id
-def get_user_tasks(conn, user):
-    sql = '''
+def get_user_tasks(conn, user_id):
+    sql = f'''
     SELECT * FROM tasks 
-    WHERE tasks.user_id = users.id;
+    WHERE tasks.user_id = {user_id};
     '''
     cur = conn.cursor()
     try:
-        cur.execute(sql, user)
+        cur.execute(sql, user_id)
         conn.commit()
     except Error as e:
         print(e)
@@ -25,9 +25,10 @@ def get_user_tasks(conn, user):
 #наприклад, 'new'
 def get_task_with_status(conn, status):
     sql = f'''
-    SELECT * FROM tasks 
-    WHERE tasks.status_id = status.id
-    AND status.name = {status};
+    SELECT t.id, t.title, t.description, t.user_id
+    FROM tasks AS t, status AS s
+    WHERE t.status_id = s.id
+    AND s.name = {status};
     '''
     cur = conn.cursor()
     try:
@@ -41,15 +42,18 @@ def get_task_with_status(conn, status):
 
 #3 Оновити статус конкретного завдання. 
 # Змініть статус конкретного завдання на 'in progress' або інший статус
-def update_task_status(conn, task_id, status_id):
+def update_task_status(conn, task_id, status):
     sql = f'''
     UPDATE tasks 
-    SET tasks.status_id = {status_id}
+    SET tasks.status_id =
+    (SELECT status.id FROM status
+    WHERE status.name = {status}
+    LIMIT 1)
     WHERE tasks.id = {task_id};
     '''
     cur = conn.cursor()
     try:
-        cur.execute(sql, task_id)
+        cur.execute(sql, status)
         conn.commit()
     except Error as e:
         print(e)
@@ -210,7 +214,8 @@ def get_tasks_with_such_user_email(conn):
 def get_tasks_without_description(conn):
     sql = '''
     SELECT * FROM tasks 
-    WHERE tasks.description IS NULL;
+    WHERE tasks.description IS NULL 
+    OR tasks.description = '';
     '''
     cur = conn.cursor()
     try:
@@ -228,7 +233,7 @@ def get_tasks_without_description(conn):
 # та їхніх завдань із певним статусом
 def get_users_and_tasks_in_progress(conn, status):
     sql = f'''
-    SELECT u.fullname, t.status_id
+    SELECT u.id, u.fullname, t.title, t.description
     FROM users AS u
     INNER JOIN tasks AS t
     ON u.id = t.user_id
@@ -272,7 +277,7 @@ if __name__ == '__main__':
         # requests 1-14
         print(get_user_tasks(conn, 1))
         print(get_task_with_status(conn, 'new'))
-        print(update_task_status(conn, 2, 2))
+        print(update_task_status(conn, 'new'))
         print(get_users_with_no_task(conn))
         print(add_new_task_to_user(conn, 1))
         print(get_not_completed_tasks(conn))
